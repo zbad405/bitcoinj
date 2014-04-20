@@ -71,7 +71,8 @@ public class MainNetParams extends NetworkParameters {
                 "seed3.zeta-coin.org",
                 "seed4.zeta-coin.org",
                 "24.249.152.169",
-                "107.182.162.12"
+                "107.182.162.12",
+                "192.186.133.74"
         };
     }
 
