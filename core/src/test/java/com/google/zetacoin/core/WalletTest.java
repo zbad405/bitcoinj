@@ -40,6 +40,7 @@ import com.google.protobuf.ByteString;
 import org.zetacoinj.wallet.Protos;
 import org.zetacoinj.wallet.Protos.ScryptParameters;
 import org.zetacoinj.wallet.Protos.Wallet.EncryptionType;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -693,24 +694,47 @@ public class WalletTest extends TestWithWallet {
     }
 
     @Test
-    public void doubleSpendIdenticalTx() throws Exception {
+    public void doubleSpends() throws Exception {
         // Test the case where two semantically identical but bitwise different transactions double spend each other.
+        // We call the second transaction a "mutant" of the first.
+        //
         // This can (and has!) happened when a wallet is cloned between devices, and both devices decide to make the
-        // same spend simultaneously - for example due a re-keying operation.
+        // same spend simultaneously - for example due a re-keying operation. It can also happen if there are malicious
+        // nodes in the P2P network that are mutating transactions on the fly as occurred during Feb 2014.
         final BigInteger value = Utils.toNanoCoins(1, 0);
-        // Give us two outputs.
-        sendMoneyToWallet(value, AbstractBlockChain.NewBlockType.BEST_CHAIN);
-        sendMoneyToWallet(value, AbstractBlockChain.NewBlockType.BEST_CHAIN);
         final BigInteger value2 = Utils.toNanoCoins(2, 0);
+        // Give us three coins and make sure we have some change.
+        sendMoneyToWallet(value.add(value2), AbstractBlockChain.NewBlockType.BEST_CHAIN);
         // The two transactions will have different hashes due to the lack of deterministic signing, but will be
         // otherwise identical. Once deterministic signatures are implemented, this test will have to be tweaked.
-        Transaction send1 = checkNotNull(wallet.createSend(new ECKey().toAddress(params), value2));
-        Transaction send2 = checkNotNull(wallet.createSend(new ECKey().toAddress(params), value2));
+        final Address address = new ECKey().toAddress(params);
+        Transaction send1 = checkNotNull(wallet.createSend(address, value2));
+        Transaction send2 = checkNotNull(wallet.createSend(address, value2));
         send1 = roundTripTransaction(params, send1);
         wallet.commitTx(send2);
+        wallet.allowSpendingUnconfirmedTransactions();
+        assertEquals(value, wallet.getBalance(Wallet.BalanceType.ESTIMATED));
+        // Now spend the change. This transaction should die permanently when the mutant appears in the chain.
+        Transaction send3 = checkNotNull(wallet.createSend(address, value));
+        wallet.commitTx(send3);
         assertEquals(BigInteger.ZERO, wallet.getBalance());
+        final LinkedList<Transaction> dead = new LinkedList<Transaction>();
+        final TransactionConfidence.Listener listener = new TransactionConfidence.Listener() {
+            @Override
+            public void onConfidenceChanged(Transaction tx, ChangeReason reason) {
+                final TransactionConfidence.ConfidenceType type = tx.getConfidence().getConfidenceType();
+                if (reason == ChangeReason.TYPE && type == TransactionConfidence.ConfidenceType.DEAD)
+                    dead.add(tx);
+            }
+        };
+        send2.getConfidence().addEventListener(listener, Threading.SAME_THREAD);
+        send3.getConfidence().addEventListener(listener, Threading.SAME_THREAD);
+        // Double spend!
         sendMoneyToWallet(send1, AbstractBlockChain.NewBlockType.BEST_CHAIN);
-        assertEquals(BigInteger.ZERO, wallet.getBalance());
+        // Back to having one coin.
+        assertEquals(value, wallet.getBalance());
+        assertEquals(send2, dead.poll());
+        assertEquals(send3, dead.poll());
     }
 
     @Test
