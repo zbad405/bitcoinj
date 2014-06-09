@@ -8,6 +8,7 @@ import com.google.zetacoin.utils.BriefLogFormatter;
 import com.google.zetacoin.utils.Threading;
 
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
@@ -27,19 +28,20 @@ public class BuildCheckpoints {
 
     // multiplier to enlarge the checkpoint interval
     private static final int INTERVAL_MULTIPLIER = 400;
+    private static final NetworkParameters PARAMS = MainNetParams.get();
+    private static final File CHECKPOINTS_FILE = new File("checkpoints");
 
     public static void main(String[] args) throws Exception {
         BriefLogFormatter.init();
-        final NetworkParameters params = MainNetParams.get();
 
         // Sorted map of UNIX time of block to StoredBlock object.
         final TreeMap<Integer, StoredBlock> checkpoints = new TreeMap<Integer, StoredBlock>();
 
         // Configure zetacoinj to fetch only headers, not save them to disk, connect to a local fully synced/validated
         // node and to save block headers that are on interval boundaries, as long as they are <1 month old.
-        final BlockStore store = new MemoryBlockStore(params);
-        final BlockChain chain = new BlockChain(params, store);
-        final PeerGroup peerGroup = new PeerGroup(params, chain);
+        final BlockStore store = new MemoryBlockStore(PARAMS);
+        final BlockChain chain = new BlockChain(PARAMS, store);
+        final PeerGroup peerGroup = new PeerGroup(PARAMS, chain);
         peerGroup.addAddress(InetAddress.getLocalHost());
         long now = new Date().getTime() / 1000;
         peerGroup.setFastCatchupTimeSecs(now);
@@ -50,7 +52,7 @@ public class BuildCheckpoints {
             @Override
             public void notifyNewBestBlock(StoredBlock block) throws VerificationException {
                 int height = block.getHeight();
-                final int interval = params.getAveragingInterval() * INTERVAL_MULTIPLIER;
+                final int interval = PARAMS.getAveragingInterval() * INTERVAL_MULTIPLIER;
                 if (height % interval == 0 && block.getHeader().getTimeSeconds() <= twoDaysAgo) {
                     System.out.println(String.format("Checkpointing block %s at height %d",
                             block.getHeader().getHash(), block.getHeight()));
@@ -65,7 +67,7 @@ public class BuildCheckpoints {
         checkState(checkpoints.size() > 0);
 
         // Write checkpoint data out.
-        final FileOutputStream fileOutputStream = new FileOutputStream("checkpoints", false);
+        final FileOutputStream fileOutputStream = new FileOutputStream(CHECKPOINTS_FILE, false);
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         final DigestOutputStream digestOutputStream = new DigestOutputStream(fileOutputStream, digest);
         digestOutputStream.on(false);
@@ -90,10 +92,12 @@ public class BuildCheckpoints {
         store.close();
 
         // Sanity check the created file.
-        CheckpointManager manager = new CheckpointManager(params, new FileInputStream("checkpoints"));
+        CheckpointManager manager = new CheckpointManager(PARAMS, new FileInputStream(CHECKPOINTS_FILE));
         checkState(manager.numCheckpoints() == checkpoints.size());
         StoredBlock test = manager.getCheckpointBefore(1379949687);  // Just after block 200,000
         checkState(test.getHeight() == 192000);
         checkState(test.getHeader().getHashAsString().equals("0000000000099a6717c7dfdb9a3021c4693f283bac7079ab1ca34860d3f3b35e"));
+
+        System.out.println("Checkpoints written to '" + CHECKPOINTS_FILE.getCanonicalPath() + "'.");
     }
 }
