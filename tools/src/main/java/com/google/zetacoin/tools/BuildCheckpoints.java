@@ -94,9 +94,19 @@ public class BuildCheckpoints {
         // Sanity check the created file.
         CheckpointManager manager = new CheckpointManager(PARAMS, new FileInputStream(CHECKPOINTS_FILE));
         checkState(manager.numCheckpoints() == checkpoints.size());
-        StoredBlock test = manager.getCheckpointBefore(1379949687);  // Just after block 200,000
-        checkState(test.getHeight() == 192000);
-        checkState(test.getHeader().getHashAsString().equals("0000000000099a6717c7dfdb9a3021c4693f283bac7079ab1ca34860d3f3b35e"));
+
+        if (PARAMS.getId() == NetworkParameters.ID_MAINNET) {
+            StoredBlock test = manager.getCheckpointBefore(1379949687);  // Just after block 200,000
+            checkState(test.getHeight() == 192000);
+            checkState(test.getHeader().getHashAsString()
+                    .equals("0000000000099a6717c7dfdb9a3021c4693f283bac7079ab1ca34860d3f3b35e"));
+		} else if (PARAMS.getId() == NetworkParameters.ID_TESTNET) {
+			// TODO: fix parameters for sanity check for testnet
+            StoredBlock test = manager.getCheckpointBefore(1390500000); // Thu Jan 23 19:00:00 CET 2014
+            checkState(test.getHeight() == 167328);
+            checkState(test.getHeader().getHashAsString()
+                    .equals("0000000000035ae7d5025c2538067fe7adb1cf5d5d9c31b024137d9090ed13a9"));
+        }
 
         System.out.println("Checkpoints written to '" + CHECKPOINTS_FILE.getCanonicalPath() + "'.");
     }
