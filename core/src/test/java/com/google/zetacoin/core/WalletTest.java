@@ -41,7 +41,6 @@ import com.google.protobuf.ByteString;
 import org.zetacoinj.wallet.Protos;
 import org.zetacoinj.wallet.Protos.ScryptParameters;
 import org.zetacoinj.wallet.Protos.Wallet.EncryptionType;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

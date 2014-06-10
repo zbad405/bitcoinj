@@ -100,8 +100,8 @@ public class BuildCheckpoints {
             checkState(test.getHeight() == 192000);
             checkState(test.getHeader().getHashAsString()
                     .equals("0000000000099a6717c7dfdb9a3021c4693f283bac7079ab1ca34860d3f3b35e"));
-		} else if (PARAMS.getId() == NetworkParameters.ID_TESTNET) {
-			// TODO: fix parameters for sanity check for testnet
+        } else if (PARAMS.getId() == NetworkParameters.ID_TESTNET) {
+            // TODO: sanity check for testnet checkpointing
             StoredBlock test = manager.getCheckpointBefore(1390500000); // Thu Jan 23 19:00:00 CET 2014
             checkState(test.getHeight() == 167328);
             checkState(test.getHeader().getHashAsString()
