@@ -26,10 +26,10 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class BuildCheckpoints {
 
-    private static final NetworkParameters PARAMS = MainNetParams.get();
-    private static final File CHECKPOINTS_FILE = new File("checkpoints");
     // multiplier to enlarge the checkpoint interval
     private static final int INTERVAL_MULTIPLIER = 400;
+    private static final NetworkParameters PARAMS = MainNetParams.get();
+    private static final File CHECKPOINTS_FILE = new File("checkpoints");
 
     public static void main(String[] args) throws Exception {
         BriefLogFormatter.init();
@@ -101,7 +101,7 @@ public class BuildCheckpoints {
             checkState(test.getHeader().getHashAsString()
                     .equals("0000000000099a6717c7dfdb9a3021c4693f283bac7079ab1ca34860d3f3b35e"));
         } else if (PARAMS.getId() == NetworkParameters.ID_TESTNET) {
-        	// TODO: sanity check for testnet checkpointing
+            // TODO: sanity check for testnet checkpointing
             StoredBlock test = manager.getCheckpointBefore(1390500000); // Thu Jan 23 19:00:00 CET 2014
             checkState(test.getHeight() == 167328);
             checkState(test.getHeader().getHashAsString()

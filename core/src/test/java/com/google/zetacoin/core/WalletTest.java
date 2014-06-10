@@ -15,10 +15,14 @@
  * limitations under the License.
  */
 
-package com.google.bitcoin.core;
+package com.google.zetacoin.core;
 
 import com.google.zetacoin.core.Transaction.SigHash;
 import com.google.zetacoin.core.Wallet.SendRequest;
+import com.google.zetacoin.wallet.DefaultCoinSelector;
+import com.google.zetacoin.wallet.RiskAnalysis;
+import com.google.zetacoin.wallet.WalletTransaction;
+import com.google.zetacoin.wallet.WalletTransaction.Pool;
 import com.google.zetacoin.crypto.KeyCrypter;
 import com.google.zetacoin.crypto.KeyCrypterException;
 import com.google.zetacoin.crypto.KeyCrypterScrypt;
@@ -28,13 +32,8 @@ import com.google.zetacoin.utils.MockTransactionBroadcaster;
 import com.google.zetacoin.utils.TestUtils;
 import com.google.zetacoin.utils.TestWithWallet;
 import com.google.zetacoin.utils.Threading;
-import com.google.zetacoin.wallet.DefaultCoinSelector;
 import com.google.zetacoin.wallet.KeyTimeCoinSelector;
-import com.google.zetacoin.wallet.RiskAnalysis;
 import com.google.zetacoin.wallet.WalletFiles;
-import com.google.zetacoin.wallet.WalletTransaction;
-import com.google.zetacoin.wallet.WalletTransaction.Pool;
-
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
