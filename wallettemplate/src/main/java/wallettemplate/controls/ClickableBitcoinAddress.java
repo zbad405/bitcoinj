@@ -1,6 +1,6 @@
 package wallettemplate.controls;
 
-import com.google.bitcoin.uri.BitcoinURI;
+import com.google.zetacoin.uri.BitcoinURI;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import javafx.beans.property.StringProperty;
@@ -25,7 +25,6 @@ import net.glxn.qrgen.image.ImageType;
 import wallettemplate.Main;
 import wallettemplate.utils.GuiUtils;
 
-import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -36,7 +35,7 @@ import java.net.URI;
 //
 // From the java directory:
 //
-// javac -cp $HOME/.m2/repository/net/glxn/qrgen/1.3/qrgen-1.3.jar:$HOME/.m2/repository/de/jensd/fontawesomefx/8.0.0/fontawesomefx-8.0.0.jar:../../../target/classes:../../../../core/target/bitcoinj-0.12-SNAPSHOT.jar -d ../../../target/classes/ -source 1.7 -target 1.7 wallettemplate/controls/ClickableBitcoinAddress.java
+// javac -cp $HOME/.m2/repository/net/glxn/qrgen/1.3/qrgen-1.3.jar:$HOME/.m2/repository/de/jensd/fontawesomefx/8.0.0/fontawesomefx-8.0.0.jar:../../../target/classes:../../../../core/target/zetacoinj-0.12-SNAPSHOT.jar -d ../../../target/classes/ -source 1.7 -target 1.7 wallettemplate/controls/ClickableBitcoinAddress.java
 
 
 /**
