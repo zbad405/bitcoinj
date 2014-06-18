@@ -19,10 +19,6 @@ package com.google.zetacoin.core;
 
 import com.google.zetacoin.core.Transaction.SigHash;
 import com.google.zetacoin.core.Wallet.SendRequest;
-import com.google.zetacoin.wallet.DefaultCoinSelector;
-import com.google.zetacoin.wallet.RiskAnalysis;
-import com.google.zetacoin.wallet.WalletTransaction;
-import com.google.zetacoin.wallet.WalletTransaction.Pool;
 import com.google.zetacoin.crypto.KeyCrypter;
 import com.google.zetacoin.crypto.KeyCrypterException;
 import com.google.zetacoin.crypto.KeyCrypterScrypt;
@@ -32,12 +28,11 @@ import com.google.zetacoin.utils.MockTransactionBroadcaster;
 import com.google.zetacoin.utils.TestUtils;
 import com.google.zetacoin.utils.TestWithWallet;
 import com.google.zetacoin.utils.Threading;
-import com.google.zetacoin.wallet.KeyTimeCoinSelector;
-import com.google.zetacoin.wallet.WalletFiles;
+import com.google.zetacoin.wallet.*;
+import com.google.zetacoin.wallet.WalletTransaction.Pool;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;
-
 import org.zetacoinj.wallet.Protos;
 import org.zetacoinj.wallet.Protos.ScryptParameters;
 import org.zetacoinj.wallet.Protos.Wallet.EncryptionType;
@@ -58,8 +53,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.google.zetacoin.utils.TestUtils.*;
 import static com.google.zetacoin.core.Utils.*;
+import static com.google.zetacoin.utils.TestUtils.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
@@ -693,12 +688,12 @@ public class WalletTest extends TestWithWallet {
         final BigInteger value2 = Utils.toNanoCoins(2, 0);
         // Give us three coins and make sure we have some change.
         sendMoneyToWallet(value.add(value2), AbstractBlockChain.NewBlockType.BEST_CHAIN);
-        // The two transactions will have different hashes due to the lack of deterministic signing, but will be
-        // otherwise identical. Once deterministic signatures are implemented, this test will have to be tweaked.
         final Address address = new ECKey().toAddress(params);
         Transaction send1 = checkNotNull(wallet.createSend(address, value2));
         Transaction send2 = checkNotNull(wallet.createSend(address, value2));
-        send1 = roundTripTransaction(params, send1);
+        byte[] buf = send1.bitcoinSerialize();
+        buf[43] = 0;  // Break the signature: bitcoinj won't check in SPV mode and this is easier than other mutations.
+        send1 = new Transaction(params, buf);
         wallet.commitTx(send2);
         wallet.allowSpendingUnconfirmedTransactions();
         assertEquals(value, wallet.getBalance(Wallet.BalanceType.ESTIMATED));
