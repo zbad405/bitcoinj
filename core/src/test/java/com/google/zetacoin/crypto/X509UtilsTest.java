@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.zetacoin.protocols.payments;
+package com.google.zetacoin.crypto;
 
 import com.google.zetacoin.crypto.X509Utils;
 import org.junit.Test;
