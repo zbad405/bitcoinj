@@ -16,6 +16,8 @@
 
 package com.google.zetacoin.tools;
 
+import com.google.zetacoin.crypto.TrustStoreLoader;
+import com.google.zetacoin.protocols.payments.PaymentProtocol;
 import com.google.zetacoin.protocols.payments.PaymentRequestException;
 import com.google.zetacoin.protocols.payments.PaymentSession;
 import com.google.zetacoin.uri.BitcoinURI;
@@ -27,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -69,7 +72,8 @@ public class PaymentProtocolTool {
             final int version = session.getPaymentRequest().getPaymentDetailsVersion();
             StringBuilder output = new StringBuilder(
                     format("Zetacoin payment request, version %d%nDate: %s%n", version, session.getDate()));
-            PaymentSession.PkiVerificationData pki = session.verifyPki();
+            PaymentProtocol.PkiVerificationData pki = PaymentProtocol.verifyPaymentRequestPki(
+                    session.getPaymentRequest(), new TrustStoreLoader.DefaultTrustStoreLoader().getKeyStore());
             if (pki != null) {
                 output.append(format("Signed by: %s%nIdentity verified by: %s%n", pki.displayName, pki.rootAuthorityName));
             }
@@ -102,6 +106,8 @@ public class PaymentProtocolTool {
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (KeyStoreException e) {
             e.printStackTrace();
         }
     }
